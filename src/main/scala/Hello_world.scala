@@ -5,7 +5,7 @@ object Hello_world {
 
     val conf = new SparkConf().
       setMaster("local").
-      setAppName("LearnScalaSpark")
+      setAppName("Hello_world")
     val sc = new SparkContext(conf)
     sc.setLogLevel("ERROR")
 
