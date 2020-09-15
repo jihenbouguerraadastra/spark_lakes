@@ -4,7 +4,6 @@ import org.apache.spark.sql.SparkSession
 object Hudi {
   def main(args: Array[String]): Unit = {
 
-
     val conf = new SparkConf().
       setMaster("local").
       setAppName("Hello_world")
