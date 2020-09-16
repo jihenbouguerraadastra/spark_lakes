@@ -1,5 +1,4 @@
 import time
-
 from delta.tables import *
 from pyspark.sql import SparkSession
 
@@ -52,4 +51,4 @@ if __name__ == '__main__':
     delta_lake.update_df()
     delta_lake.delete_df()
     delta_lake.roll_back_df()
-    delta_lake.__await__()
+
