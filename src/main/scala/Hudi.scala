@@ -15,9 +15,9 @@ object Hudi {
     val conf = new SparkConf().
       setMaster("local").
       setAppName("Hello_world")
-    var path_data = "C:\\Users\\Jihen.Bouguerra" +
+    var path_data = "\\Users\\Jihen.Bouguerra" +
       "\\Documents\\GitHub\\spark_hudi\\src\\data\\brut_data\\data.parquet"
-    var path_hudi_table = "C:\\Users\\Jihen.Bouguerra\\" +
+    var path_hudi_table = "\\Users\\Jihen.Bouguerra\\" +
       "Documents\\GitHub\\spark_hudi\\src\\data\\hudi"
 
 
@@ -26,7 +26,6 @@ object Hudi {
     sc.setLogLevel("ERROR")
     val spark = SparkSession.builder
       .config(sc.getConf)
-      .config("spark.sql.warehouse.dir", "file:///c:/tmp/spark-warehouse")
       .getOrCreate()
     import spark.implicits._
     val data = Seq(1, 2, 3, 3, 4, 5, 6)
@@ -47,13 +46,26 @@ object Hudi {
       .mode(SaveMode.Overwrite).
       save(path_hudi_table)
 
+    var rest = people_df.filter(col("first_name") === "Amanda").
+      write.options(getQuickstartWriteConfigs).
+      option(OPERATION_OPT_KEY, "upsert").
+      option(PRECOMBINE_FIELD_OPT_KEY, "id").
+      option(RECORDKEY_FIELD_OPT_KEY, "id").
+      option(TABLE_NAME, "people_table_filtred").
+      mode(SaveMode.Append).
+      save(path_hudi_table)
 
-    val hudi_table = spark
-      .read
-      .format("org.apache.hudi")
-      .load(s"$path_hudi_table").show(truncate = false)
+        val hudi_table = spark
+          .read
+          .format("org.apache.hudi")
+          .load(s"$path_hudi_table/*")
 
+        hudi_table.show(truncate = false)
 
+//    var filter_df = spark.read.
+//      parquet(path_hudi_table + "\\part-00000-4f4ea92c-a928-4fa7-8dfa-96c9c06a5360-c000.snappy.parquet")
+//
+//  filter_df.show()
   }
 }
 
