@@ -10,3 +10,5 @@ libraryDependencies += "org.apache.hudi" %% "hudi-spark" % "0.6.0"
 libraryDependencies += "org.apache.spark" %% "spark-core" % "2.4.7"
 // https://mvnrepository.com/artifact/org.apache.spark/spark-sql
 libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.4.7"
+// https://mvnrepository.com/artifact/org.apache.iceberg/iceberg-api
+libraryDependencies += "org.apache.iceberg" % "iceberg-api" % "0.9.1"

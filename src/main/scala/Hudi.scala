@@ -21,12 +21,12 @@ object Hudi {
     val tableName = "id"
     val basePath = "\\hadoop\\hudi-table\\data.parquet"
 
-    var df2 = spark.read.parquet(basePath)
-    df2.show()
 
-    val hoodieIncViewDF = spark.read.format("org.apache.hudi")
-      .load(basePath);
 
+
+    val addressDf = spark.read.format("hudi")
+      .text("src\\data\\addresses.csv")
+    addressDf.show()
   }
 }
 

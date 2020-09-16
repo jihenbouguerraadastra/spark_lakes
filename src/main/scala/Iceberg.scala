@@ -12,8 +12,10 @@ object Iceberg {
         .builder()
         .getOrCreate();
 
-      val addressDf = spark.read.format("iceberg").text("C:\\AGE-Lab\\Problem-Statement-1\\iceberg-table\\addresses.csv")
+      val addressDf = spark.read.format("iceberg")
+        .text("src\\data\\addresses.csv")
       addressDf.createOrReplaceTempView("address")
+      addressDf.show()
       val results = sqlContext.sql("SELECT * FROM address")
       //results.collect.foreach(println)
       results.show()
