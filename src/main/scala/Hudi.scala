@@ -9,9 +9,9 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 object Hudi {
   val path_data = "\\Users\\Jihen.Bouguerra" +
-    "\\Documents\\GitHub\\spark_lakes\\src\\data\\brut_data\\data.parquet"
+    "\\Documents\\GitHub\\spark_lakes\\data\\brut_data\\data.parquet"
   val path_hudi_table = "\\Users\\Jihen.Bouguerra\\" +
-    "Documents\\GitHub\\spark_lakes\\src\\data\\hudi"
+    "Documents\\GitHub\\spark_lakes\\data\\hudi_database"
 
   var conf: SparkConf = _
   var sc: SparkContext = _
@@ -80,7 +80,7 @@ object Hudi {
     write_df()
     delete_df()
 
-    
+
   }
 }
 

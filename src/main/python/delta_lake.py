@@ -12,7 +12,8 @@ class Delta_lake:
             .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
             .getOrCreate()
         self.sc = self.spark.sparkContext
-        self.data_path = "C:\\Users\\Jihen.Bouguerra\\hadoop\\delta-table"
+        self.data_path = "\\Users\\Jihen.Bouguerra\\" \
+                         "Documents\\GitHub\\spark_lakes\\data\\delta_database"
         self.df = None
         self.delta_table = None
 
@@ -51,4 +52,3 @@ if __name__ == '__main__':
     delta_lake.update_df()
     delta_lake.delete_df()
     delta_lake.roll_back_df()
-
