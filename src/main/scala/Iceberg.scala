@@ -2,7 +2,9 @@ import org.apache.spark.SparkContext
 import org.apache.spark.sql.SparkSession
 
 object Iceberg {
+
   import org.apache.spark.SparkConf
+
   val conf = new SparkConf().setAppName("ICEBERG").setMaster("local[2]").set("spark.executor.memory", "1g")
   val sc = new SparkContext(conf)
   val sqlContext = new org.apache.spark.sql.SQLContext(sc)
@@ -11,14 +13,14 @@ object Iceberg {
     .getOrCreate();
 
   val data_path = "C:\\AGE-Lab\\Problem-Statement-1\\iceberg-table\\addresses.csv"
-  val addressDf = spark.read.option("inferSchema","true").format("iceberg").text(data_path)
+  val addressDf = spark.read.option("inferSchema", "true").format("iceberg").text(data_path)
   addressDf.createOrReplaceTempView("address")
   //val results = sqlContext.sql("SELECT * FROM address")
   //results.show()
 
   def read_df(): Unit = {
     val addressDf = spark.read
-      .option("inferSchema","true")
+      .option("inferSchema", "true")
       .format("iceberg")
       .text(data_path)
     addressDf.show()

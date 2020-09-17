@@ -21,7 +21,7 @@ object Hudi {
   def init_spark_session(): Unit = {
     conf = new SparkConf().
       setMaster("local").
-      setAppName("Hello_world")
+      setAppName("Hudi_operation")
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     sc = new SparkContext(conf)
     sc.setLogLevel("ERROR")
@@ -78,6 +78,7 @@ object Hudi {
     init_spark_session()
     read_df()
     write_df()
+    filter_df()
     delete_df()
 
 

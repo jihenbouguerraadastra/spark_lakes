@@ -14,4 +14,3 @@ libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.4.7"
 libraryDependencies += "org.apache.iceberg" % "iceberg-api" % "0.9.1"
 // https://mvnrepository.com/artifact/io.delta/delta-core
 libraryDependencies += "io.delta" %% "delta-core" % "0.6.1"
-
