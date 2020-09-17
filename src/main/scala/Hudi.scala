@@ -8,17 +8,20 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.{SparkConf, SparkContext}
 
 object Hudi {
-  val path_data = "\\Users\\Jihen.Bouguerra" +
-    "\\Documents\\GitHub\\spark_lakes\\data\\brut_data\\data.parquet"
-  val path_hudi_table = "\\Users\\Jihen.Bouguerra\\" +
-    "Documents\\GitHub\\spark_lakes\\data\\hudi_database"
-
+  var path_data: String = _
+  var path_hudi_table: String = _
   var conf: SparkConf = _
   var sc: SparkContext = _
   var spark: SparkSession = _
   var people_df: DataFrame = _
+  var pwd: String = _
 
   def init_spark_session(): Unit = {
+
+    pwd = System.getProperty("user.dir")
+    path_data = pwd + "\\data\\brut_data\\data.parquet"
+    path_hudi_table = pwd + "\\data\\hudi_database"
+
     conf = new SparkConf().
       setMaster("local").
       setAppName("Hudi_operation")
@@ -81,11 +84,6 @@ object Hudi {
     filter_df()
     delete_df()
 
-
   }
 }
 
-//    var filter_df = spark.read.
-//      parquet(path_hudi_table + "\\part-00000-4f4ea92c-a928-4fa7-8dfa-96c9c06a5360-c000.snappy.parquet")
-//
-//  filter_df.show()
