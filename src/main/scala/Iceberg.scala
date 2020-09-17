@@ -12,7 +12,9 @@ object Iceberg {
     .builder()
     .getOrCreate();
 
-  val data_path = "C:\\AGE-Lab\\Problem-Statement-1\\iceberg-table\\addresses.csv"
+  //pwd + "\\data\\brut_data\\addresses.csv"
+  val data_path = System.getProperty("user.dir") + "\\data\\brut_data\\addresses.csv"
+  val db_path = System.getProperty("user.dir") + "\\data\\iceberg_database"
   val addressDf = spark.read.option("inferSchema", "true").format("iceberg").text(data_path)
   addressDf.createOrReplaceTempView("address")
   //val results = sqlContext.sql("SELECT * FROM address")
@@ -29,7 +31,7 @@ object Iceberg {
   def write_df(): Unit = {
     addressDf.write
       .mode("append")
-      .save("C:\\AGE-Lab\\Problem-Statement-1\\spark_lakes\\iceberg-tables")
+      .save(db_path)
   }
 
   def filter_df(): Unit = {
