@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession
 from pathlib import Path
 import timeit
 
-number_iteration = 1000
+number_iteration = 10
 
 
 class Delta_lake:
@@ -88,19 +88,24 @@ class Delta_lake:
 
 def calculate_time():
     delta_lake = Delta_lake(False)
-    print("********************** ", number_iteration, " of write operations ", "**********************")
+    print(number_iteration, " writing operations")
     time_write = timeit.timeit(lambda: delta_lake.write(), number=number_iteration)
-    print("********************** ", number_iteration, " of update operations ", "**********************")
+    print(number_iteration, " updating operations")
     time_update = timeit.timeit(lambda: delta_lake.update(), number=number_iteration)
-    print("********************** ", number_iteration, " of insert operations ", "**********************")
+    print(number_iteration, " inserting operations")
     time_insert = timeit.timeit(lambda: delta_lake.insert(), number=number_iteration)
-    print("********************** ", number_iteration, " of delete operations ", "**********************")
+    print(number_iteration, " deleting operations")
     time_delete = timeit.timeit(lambda: delta_lake.delete(), number=number_iteration)
 
-    print("** Time for ", number_iteration, " operations of write : ", time_write)
-    print("** Time for ", number_iteration, " operations of update : ", time_update)
-    print("** Time for ", number_iteration, " operations of insert : ", time_insert)
-    print("** Time for ", number_iteration, " operations of delete : ", time_delete)
+    print(".............................................................................................")
+    print("** Time for ", number_iteration, " writing operation ", time_write)
+    print("** Time for a writing operation : ", time_write / number_iteration)
+    print("** Time for ", number_iteration, " updating operation ", time_update)
+    print("** Time for  an updating operation : ", time_update / number_iteration)
+    print("** Time for ", number_iteration, " inserting operation ", time_insert)
+    print("** Time for an inserting operation : ", time_insert / number_iteration)
+    print("** Time for ", number_iteration, " deleting operations ", time_delete)
+    print("** Time for a deleting operation : ", time_delete / number_iteration)
 
 
 def test():
