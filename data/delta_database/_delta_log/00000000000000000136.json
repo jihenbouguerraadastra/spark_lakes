@@ -1,0 +1,3 @@
+{"commitInfo":{"timestamp":1600425035696,"operation":"DELETE","operationParameters":{"predicate":"[\"(`id` = 1)\"]"},"readVersion":135,"isBlindAppend":false,"operationMetrics":{"numRemovedFiles":"1","numDeletedRows":"1","numAddedFiles":"1","numCopiedRows":"0"}}}
+{"remove":{"path":"part-00043-a9b29021-f9ed-49af-83f9-288022c1e3d0-c000.snappy.parquet","deletionTimestamp":1600425035691,"dataChange":true}}
+{"add":{"path":"part-00000-f2b4ae0b-5868-41bd-9090-54e40ea58e32-c000.snappy.parquet","partitionValues":{},"size":1327,"modificationTime":1600425035687,"dataChange":true}}
