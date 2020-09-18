@@ -17,6 +17,13 @@ object Hudi {
   var people_df: DataFrame = _
   var pwd: String = _
 
+  def time[A](f: => A) = {
+    val s = System.nanoTime
+    val ret = f
+    println("time: "+(System.nanoTime-s)/1e6+"ms")
+    ret
+  }
+
   def init_spark_session(): Unit = {
 
     pwd = System.getProperty("user.dir")
@@ -38,7 +45,7 @@ object Hudi {
     people_df = spark.read.parquet(path_data)
     people_df.show()
 
-    spark.time(people_df.show())
+    spark.time(spark.read.parquet(path_data))
   }
 
   def write_df(): Unit = {
@@ -53,7 +60,11 @@ object Hudi {
       .mode(SaveMode.Overwrite).
       save(path_hudi_table)
 
-    spark.time(people_df.show())
+    spark.time(people_df.write.
+      options(getQuickstartWriteConfigs).
+      options(hudi_options)
+      .mode(SaveMode.Overwrite).
+      save(path_hudi_table))
   }
 
   def update_df(): Unit = {
@@ -68,7 +79,11 @@ object Hudi {
       .mode(SaveMode.Append).
       save(path_hudi_table)
 
-    spark.time(people_df.show())
+    spark.time(people_df.write.
+      options(getQuickstartWriteConfigs).
+      options(hudi_options)
+      .mode(SaveMode.Append).
+      save(path_hudi_table))
   }
 
   def filter_df(): Unit = {
@@ -94,7 +109,13 @@ object Hudi {
       mode(SaveMode.Append).
       save(path_hudi_table)
 
-    spark.time(people_df.show())
+    spark.time(people_df.write.options(getQuickstartWriteConfigs).
+      option(OPERATION_OPT_KEY, "delete").
+      option(PRECOMBINE_FIELD_OPT_KEY, "id").
+      option(RECORDKEY_FIELD_OPT_KEY, "id").
+      option(TABLE_NAME, "people_table_after_delete").
+      mode(SaveMode.Append).
+      save(path_hudi_table))
   }
 
 
