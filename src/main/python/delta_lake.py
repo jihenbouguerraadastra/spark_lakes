@@ -2,11 +2,14 @@ import time
 from delta.tables import *
 from pyspark.sql import SparkSession
 from pathlib import Path
+import timeit
+
+number_iteration = 1000
 
 
 class Delta_lake:
 
-    def __init__(self):
+    def __init__(self, display):
         self.spark = SparkSession.builder.appName("Delta_crud") \
             .config("spark.jars.packages", "io.delta:delta-core_2.12:0.7.0") \
             .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
@@ -15,41 +18,98 @@ class Delta_lake:
         self.sc = self.spark.sparkContext
         self.pwd = str(Path(__file__).parents[3])
         self.path_delta_table = self.pwd + "\\data\\delta_database"
-        self.df = None
         self.path_data = self.pwd + "\\data\\brut_data\\data.parquet"
         self.delta_table = None
-
-    def read_df(self):
-        print()
         self.df = self.spark.read.load(self.path_data)
-        self.df.show()
+        self.display_ = display
 
-    def write_df(self):
+    def read(self):
+        self.delta_table = DeltaTable.forPath(self.spark, self.path_delta_table)
+
+    def write(self):
         self.df.write.format("delta").mode("overwrite") \
             .save(self.path_delta_table)
+        self.read()
 
-    def update_df(self):
-        self.delta_table = DeltaTable.forPath(self.spark, self.path_delta_table)
-        self.delta_table.update(condition="id % 2 == 0",
-                                set={"cc": "cc + 100"})
-        self.delta_table.toDF().show()
+    def insert(self):
+        df_update = self.df.limit(1)
+        self.delta_table.alias("people").merge(
+            df_update.alias("updates"),
+            "people.id = updates.id") \
+            .whenMatchedUpdate(set={"id": "updates.id"}) \
+            .whenNotMatchedInsert(values=
+                                  {"registration_dttm": "updates.registration_dttm",
+                                   "id": "updates.id",
+                                   "first_name": "updates.first_name",
+                                   "last_name": "updates.last_name",
+                                   "email": "updates.email",
+                                   "gender": "updates.gender",
+                                   "ip_address": "updates.ip_address",
+                                   "cc": "updates.cc",
+                                   "country": "updates.country",
+                                   "birthdate": "updates.birthdate",
+                                   "salary": "updates.salary",
+                                   "title": "updates.title",
+                                   "comments": "updates.comments"
 
-    def delete_df(self):
-        self.delta_table.delete(condition="id  == 1")
-        self.delta_table.toDF().show()
+                                   }).execute()
 
-    def roll_back_df(self):
+        if self.display_:
+            print("+++++++++++++++++++++++++++++++++++++++++++ Insert +++++++++++++++++++++++++++++++++++++++++++")
+            self.display()
+
+    def update(self):
+        self.delta_table.update(set={"id": "id + 1000"})
+        if self.display_:
+            print("+++++++++++++++++++++++++++++++++++++++++++ Update +++++++++++++++++++++++++++++++++++++++++++")
+            self.display()
+
+        # self.delta_table.toDF().show()
+
+    def delete(self):
+        self.delta_table.delete(condition="id == 1")
+        if self.display_:
+            print("+++++++++++++++++++++++++++++++++++++++++++ Delete +++++++++++++++++++++++++++++++++++++++++++")
+            self.display()
+
+    def roll_back(self):
         self.df = self.spark.read.format("delta").option("versionAsOf", 0).load(self.path_delta_table)
-        self.df.show()
+        if self.display_:
+            print("+++++++++++++++++++++++++++++++++++++++++++ Roll_back +++++++++++++++++++++++++++++++++++++++++++")
+            self.display()
+
+    def display(self):
+        self.delta_table.toDF().show()
+        print("***** Size Table:", self.delta_table.toDF().count())
 
     def __await__(self):
         time.sleep(300)
 
 
+def calculate_time():
+    delta_lake = Delta_lake(False)
+    print("********************** ", number_iteration, " of write operations ", "**********************")
+    time_write = timeit.timeit(lambda: delta_lake.write(), number=number_iteration)
+    print("********************** ", number_iteration, " of update operations ", "**********************")
+    time_update = timeit.timeit(lambda: delta_lake.update(), number=number_iteration)
+    print("********************** ", number_iteration, " of insert operations ", "**********************")
+    time_insert = timeit.timeit(lambda: delta_lake.insert(), number=number_iteration)
+    print("********************** ", number_iteration, " of delete operations ", "**********************")
+    time_delete = timeit.timeit(lambda: delta_lake.delete(), number=number_iteration)
+
+    print("** Time for ", number_iteration, " operations of write : ", time_write)
+    print("** Time for ", number_iteration, " operations of update : ", time_update)
+    print("** Time for ", number_iteration, " operations of insert : ", time_insert)
+    print("** Time for ", number_iteration, " operations of delete : ", time_delete)
+
+
+def test():
+    delta_lake = Delta_lake(True)
+    delta_lake.write()
+    delta_lake.update()
+    delta_lake.insert()
+    delta_lake.delete()
+
+
 if __name__ == '__main__':
-    delta_lake = Delta_lake()
-    delta_lake.read_df()
-    delta_lake.write_df()
-    delta_lake.update_df()
-    delta_lake.delete_df()
-    delta_lake.roll_back_df()
+    calculate_time()
