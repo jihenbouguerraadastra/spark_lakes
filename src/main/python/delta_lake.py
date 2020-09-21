@@ -1,30 +1,36 @@
 import time
+import timeit
+
 from delta.tables import *
 from pyspark.sql import SparkSession
 from pathlib import Path
-import timeit
+import time
+
 
 number_iterations = 5
 
 
-def time(function, number_iterations=number_iterations):
+def time_(function, number_iterations=number_iterations):
     start = timeit.default_timer()
     for i in range(0, number_iterations):
         function
-    stop = timeit.default_timer()
-    duration = stop - start
+    stop =timeit.default_timer()
+    duration = (stop - start) * (10 ** 6)
     print("Time per ", number_iterations, " iterations (s) : ", duration)
     print("Time per  single iteration (s) : ", duration / number_iterations)
 
 
 class Delta_lake:
     def __init__(self, display):
+
         self.spark = SparkSession.builder.appName("Delta_crud") \
             .config("spark.jars.packages", "io.delta:delta-core_2.12:0.7.0") \
             .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
             .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
             .getOrCreate()
+
         self.sc = self.spark.sparkContext
+        self.sc.setLogLevel("ERROR")
         self.pwd = str(Path(__file__).parents[3])
         self.path_delta_table = self.pwd + "\\data\\delta_database"
         self.path_data = self.pwd + "\\data\\brut_data\\data.parquet"
@@ -95,13 +101,13 @@ def calculate_time():
     delta_lake = Delta_lake(False)
     delta_lake.read()
     print("+++++++++++++++++++++++++++++++ Writing +++++++++++++++++++++++++++++++")
-    time(delta_lake.write())
+    time_(delta_lake.write())
     print("+++++++++++++++++++++++++++++++ Updating +++++++++++++++++++++++++++++++")
-    time(delta_lake.update())
+    time_(delta_lake.update())
     print("+++++++++++++++++++++++++++++++ Inserting +++++++++++++++++++++++++++++++")
-    time(delta_lake.insert())
+    time_(delta_lake.insert())
     print("+++++++++++++++++++++++++++++++ Deleting  +++++++++++++++++++++++++++++++")
-    time(delta_lake.delete())
+    time_(delta_lake.delete())
 
 
 def test():

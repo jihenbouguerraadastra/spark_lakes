@@ -54,7 +54,6 @@ object Hudi {
 
 
   def insert(): Unit = {
-
     people_df = people_df.unionAll(people_df.limit(1))
     people_df.write.options(getQuickstartWriteConfigs)
       .options(hudi_options)
@@ -72,8 +71,7 @@ object Hudi {
   }
 
   def update(): Unit = {
-    people_df = people_df.withColumn("id", when(col("id") === 1, 1001)
-      .otherwise(col("id")))
+    people_df = people_df.withColumn("id", col("id") + 1000)
     people_df.write
       .options(getQuickstartWriteConfigs)
       .options(hudi_options)
