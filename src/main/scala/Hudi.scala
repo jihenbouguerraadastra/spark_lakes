@@ -25,9 +25,9 @@ object Hudi {
       var function_call = f
       function_call
     }
-    val time_write = (System.nanoTime - time_init) / 1e9d
-    println("Time per " + number_iterations + " iterations (s) : " + time_write)
-    println("Time per  single iteration (s) : " + time_write / number_iterations)
+    val duration = (System.nanoTime - time_init) / 1e9d
+    println("Time per " + number_iterations + " iterations (s) : " + duration)
+    println("Time per  single iteration (s) : " + duration / number_iterations)
   }
 
 
@@ -107,38 +107,13 @@ object Hudi {
 
   def calculate_time(): Unit = {
     println("+++++++++++++++++++++++++++++++ Writing +++++++++++++++++++++++++++++++")
-    time(people_df.write.
-      options(getQuickstartWriteConfigs)
-      .options(hudi_options).mode(SaveMode.Overwrite)
-      .save(path_hudi_table), number_iterations)
+    time(write(), number_iterations)
     println("+++++++++++++++++++++++++++++++ Updating +++++++++++++++++++++++++++++++")
-    time({
-      people_df.withColumn("id", when(col("id") === 1, 1001)
-        .otherwise(col("id")))
-      people_df.write
-        .options(getQuickstartWriteConfigs)
-        .options(hudi_options)
-        .mode(SaveMode.Append)
-        .save(path_hudi_table)
-    }, number_iterations)
+    time(update(), number_iterations)
     println("+++++++++++++++++++++++++++++++ Inserting +++++++++++++++++++++++++++++++")
-    time({
-      people_df = people_df.unionAll(people_df.limit(1))
-      people_df.write.options(getQuickstartWriteConfigs)
-        .options(hudi_options)
-        .mode(SaveMode.Append)
-        .save(path_hudi_table)
-    }, number_iterations)
-
+    time(insert(), number_iterations)
     println("+++++++++++++++++++++++++++++++ Deleting  +++++++++++++++++++++++++++++++")
-    time({
-      people_df = people_df.filter("id != 1")
-      people_df.write.options(getQuickstartWriteConfigs).
-        option(OPERATION_OPT_KEY, "delete")
-        .options(hudi_options)
-        .mode(SaveMode.Append)
-        .save(path_hudi_table)
-    }, number_iterations)
+    time(delete(), number_iterations)
 
 
   }

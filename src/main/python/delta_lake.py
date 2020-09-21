@@ -4,11 +4,20 @@ from pyspark.sql import SparkSession
 from pathlib import Path
 import timeit
 
-number_iteration = 1
+number_iterations = 5
+
+
+def time(function, number_iterations=number_iterations):
+    start = timeit.default_timer()
+    for i in range(0, number_iterations):
+        function
+    stop = timeit.default_timer()
+    duration = stop - start
+    print("Time per ", number_iterations, " iterations (s) : ", duration)
+    print("Time per  single iteration (s) : ", duration / number_iterations)
 
 
 class Delta_lake:
-
     def __init__(self, display):
         self.spark = SparkSession.builder.appName("Delta_crud") \
             .config("spark.jars.packages", "io.delta:delta-core_2.12:0.7.0") \
@@ -27,12 +36,9 @@ class Delta_lake:
         self.delta_table = DeltaTable.forPath(self.spark, self.path_delta_table)
 
     def write(self):
-        start = timeit.default_timer()
         self.df.write.format("delta").mode("overwrite") \
             .save(self.path_delta_table)
         self.read()
-        stop = timeit.default_timer()
-
 
     def insert(self):
         df_insert = self.df.limit(1)
@@ -65,8 +71,6 @@ class Delta_lake:
             print("+++++++++++++++++++++++++++++++++++++++++++ Update +++++++++++++++++++++++++++++++++++++++++++")
             self.display()
 
-        # self.delta_table.toDF().show()
-
     def delete(self):
         self.delta_table.delete(condition="id == 1")
         if self.display_:
@@ -86,52 +90,19 @@ class Delta_lake:
     def __await__(self):
         time.sleep(300)
 
-    def calculate_time(self):
-        print(number_iteration, " writing operations")
-        time_write = timeit.timeit(lambda: self.df.write.format("delta").mode("overwrite") \
-                                   .save(self.path_delta_table), number=number_iteration)
-        self.read()
-        print(number_iteration, " updating operations")
-        df_insert = self.df.limit(1)
-        time_update = timeit.timeit(lambda: self.delta_table.update(set={"id": "id + 1000"})
-                                    , number=number_iteration)
-        print(number_iteration, " inserting operations")
-        time_insert = timeit.timeit(lambda: self.delta_table.alias("people").merge(
-            df_insert.alias("updates"), "people.id = updates.id").whenMatchedUpdate(set={"id": "updates.id"}) \
-                                    .whenNotMatchedInsert(values=
-                                                          {"registration_dttm": "updates.registration_dttm",
-                                                           "id": "updates.id",
-                                                           "first_name": "updates.first_name",
-                                                           "last_name": "updates.last_name",
-                                                           "email": "updates.email",
-                                                           "gender": "updates.gender",
-                                                           "ip_address": "updates.ip_address",
-                                                           "cc": "updates.cc",
-                                                           "country": "updates.country",
-                                                           "birthdate": "updates.birthdate",
-                                                           "salary": "updates.salary",
-                                                           "title": "updates.title",
-                                                           "comments": "updates.comments"
-
-                                                           }).execute(), number=number_iteration)
-        print(number_iteration, " deleting operations")
-        time_delete = timeit.timeit(lambda: self.delta_table.delete(condition="id == 1"), number=number_iteration)
-        print("** Time for ", number_iteration, " writing operation without function call ", time_write)
-        print("** Time for a writing operation without function call : ", time_write / number_iteration)
-        print(".............................................................................................")
-        print("** Time for ", number_iteration, " writing operation ", time_write)
-        print("** Time for a writing operation : ", time_write / number_iteration)
-        print("** Time for ", number_iteration, " updating operation ", time_update)
-        print("** Time for  an updating operation : ", time_update / number_iteration)
-        print("** Time for ", number_iteration, " inserting operation ", time_insert)
-        print("** Time for an inserting operation : ", time_insert / number_iteration)
-        print("** Time for ", number_iteration, " deleting operations ", time_delete)
-        print("** Time for a deleting operation : ", time_delete / number_iteration)
-
 
 def calculate_time():
     delta_lake = Delta_lake(False)
-    delta_lake.calculate_time()
+    delta_lake.read()
+    print("+++++++++++++++++++++++++++++++ Writing +++++++++++++++++++++++++++++++")
+    time(delta_lake.write())
+    print("+++++++++++++++++++++++++++++++ Updating +++++++++++++++++++++++++++++++")
+    time(delta_lake.update())
+    print("+++++++++++++++++++++++++++++++ Inserting +++++++++++++++++++++++++++++++")
+    time(delta_lake.insert())
+    print("+++++++++++++++++++++++++++++++ Deleting  +++++++++++++++++++++++++++++++")
+    time(delta_lake.delete())
+
 
 def test():
     delta_lake = Delta_lake(True)
