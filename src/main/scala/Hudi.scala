@@ -16,116 +16,137 @@ object Hudi {
   var spark: SparkSession = _
   var people_df: DataFrame = _
   var pwd: String = _
+  var number_iterations = 5
+  var hudi_options: Map[String, String] = _
 
-  def time[A](f: => A) = {
-    val s = System.nanoTime
-    val ret = f
-    println("time: "+(System.nanoTime-s)/1e6+"ms")
-    ret
+  def time[T](f: => T, number_iterations: Int = 1): Unit = {
+    val time_init = System.nanoTime
+    for (i <- 1 to number_iterations) {
+      var function_call = f
+      function_call
+    }
+    val time_write = (System.nanoTime - time_init) / 1e9d
+    println("Time per " + number_iterations + " iterations (s) : " + time_write)
+    println("Time per  single iteration (s) : " + time_write / number_iterations)
   }
 
-  def init_spark_session(): Unit = {
 
+  def init_spark_session(): Unit = {
     pwd = System.getProperty("user.dir")
     path_data = pwd + "\\data\\brut_data\\data.parquet"
     path_hudi_table = pwd + "\\data\\hudi_database"
-
-    conf = new SparkConf().
-      setMaster("local").
-      setAppName("Hudi_operation")
+    conf = new SparkConf().setMaster("local").setAppName("Hudi_operation")
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     sc = new SparkContext(conf)
     sc.setLogLevel("ERROR")
-    spark = SparkSession.builder
-      .config(sc.getConf)
-      .getOrCreate()
-  }
-
-  def read_df(): Unit = {
+    spark = SparkSession.builder.config(sc.getConf).getOrCreate()
     people_df = spark.read.parquet(path_data)
+    hudi_options = Map[String, String](
+      HoodieWriteConfig.TABLE_NAME -> "people_table",
+      DataSourceWriteOptions.RECORDKEY_FIELD_OPT_KEY -> "id",
+      DataSourceWriteOptions.PRECOMBINE_FIELD_OPT_KEY -> "id")
+  }
+
+  def display(): Unit = {
     people_df.show()
-
-    spark.time(spark.read.parquet(path_data))
+    println("Size df : " + people_df.count())
   }
 
-  def write_df(): Unit = {
-    val hudi_options = Map[String, String](
-      HoodieWriteConfig.TABLE_NAME -> "people_table",
-      DataSourceWriteOptions.RECORDKEY_FIELD_OPT_KEY -> "id",
-      DataSourceWriteOptions.PRECOMBINE_FIELD_OPT_KEY -> "id"
-    )
+
+  def insert(): Unit = {
+
+    people_df = people_df.unionAll(people_df.limit(1))
+    people_df.write.options(getQuickstartWriteConfigs)
+      .options(hudi_options)
+      .mode(SaveMode.Append)
+      .save(path_hudi_table)
+
+  }
+
+  def write(): Unit = {
     people_df.write.
-      options(getQuickstartWriteConfigs).
-      options(hudi_options)
-      .mode(SaveMode.Overwrite).
-      save(path_hudi_table)
-
-    spark.time(people_df.write.
-      options(getQuickstartWriteConfigs).
-      options(hudi_options)
-      .mode(SaveMode.Overwrite).
-      save(path_hudi_table))
+      options(getQuickstartWriteConfigs)
+      .options(hudi_options)
+      .mode(SaveMode.Overwrite)
+      .save(path_hudi_table)
   }
 
-  def update_df(): Unit = {
-    val hudi_options = Map[String, String](
-      HoodieWriteConfig.TABLE_NAME -> "people_table",
-      DataSourceWriteOptions.RECORDKEY_FIELD_OPT_KEY -> "id",
-      DataSourceWriteOptions.PRECOMBINE_FIELD_OPT_KEY -> "id"
-    )
-    people_df.write.
-      options(getQuickstartWriteConfigs).
-      options(hudi_options)
-      .mode(SaveMode.Append).
-      save(path_hudi_table)
+  def update(): Unit = {
+    people_df = people_df.withColumn("id", when(col("id") === 1, 1001)
+      .otherwise(col("id")))
+    people_df.write
+      .options(getQuickstartWriteConfigs)
+      .options(hudi_options)
+      .mode(SaveMode.Append)
+      .save(path_hudi_table)
 
-    spark.time(people_df.write.
-      options(getQuickstartWriteConfigs).
-      options(hudi_options)
-      .mode(SaveMode.Append).
-      save(path_hudi_table))
+
   }
 
-  def filter_df(): Unit = {
+  def filter(): Unit = {
     /* Apply filter on Hudi table and save changes*/
     people_df.filter(col("first_name") === "Amanda").
-      write.options(getQuickstartWriteConfigs).
-      option(OPERATION_OPT_KEY, "upsert").
-      option(PRECOMBINE_FIELD_OPT_KEY, "id").
-      option(RECORDKEY_FIELD_OPT_KEY, "id").
-      option(TABLE_NAME, "people_table_filtered").
-      mode(SaveMode.Append).
-      save(path_hudi_table)
+      write.options(getQuickstartWriteConfigs)
+      .option(OPERATION_OPT_KEY, "upsert")
+      .options(hudi_options)
+      .mode(SaveMode.Append)
+      .save(path_hudi_table)
 
   }
 
-  def delete_df(): Unit = {
+  def delete(): Unit = {
     /* Apply delete + condition on Hudi table and save changes*/
+    people_df = people_df.filter("id != 1")
     people_df.write.options(getQuickstartWriteConfigs).
-      option(OPERATION_OPT_KEY, "delete").
-      option(PRECOMBINE_FIELD_OPT_KEY, "id").
-      option(RECORDKEY_FIELD_OPT_KEY, "id").
-      option(TABLE_NAME, "people_table_after_delete").
-      mode(SaveMode.Append).
-      save(path_hudi_table)
+      option(OPERATION_OPT_KEY, "delete")
+      .options(hudi_options)
+      .mode(SaveMode.Append)
+      .save(path_hudi_table)
 
-    spark.time(people_df.write.options(getQuickstartWriteConfigs).
-      option(OPERATION_OPT_KEY, "delete").
-      option(PRECOMBINE_FIELD_OPT_KEY, "id").
-      option(RECORDKEY_FIELD_OPT_KEY, "id").
-      option(TABLE_NAME, "people_table_after_delete").
-      mode(SaveMode.Append).
-      save(path_hudi_table))
   }
 
+  def calculate_time(): Unit = {
+    println("+++++++++++++++++++++++++++++++ Writing +++++++++++++++++++++++++++++++")
+    time(people_df.write.
+      options(getQuickstartWriteConfigs)
+      .options(hudi_options).mode(SaveMode.Overwrite)
+      .save(path_hudi_table), number_iterations)
+    println("+++++++++++++++++++++++++++++++ Updating +++++++++++++++++++++++++++++++")
+    time({
+      people_df.withColumn("id", when(col("id") === 1, 1001)
+        .otherwise(col("id")))
+      people_df.write
+        .options(getQuickstartWriteConfigs)
+        .options(hudi_options)
+        .mode(SaveMode.Append)
+        .save(path_hudi_table)
+    }, number_iterations)
+    println("+++++++++++++++++++++++++++++++ Inserting +++++++++++++++++++++++++++++++")
+    time({
+      people_df = people_df.unionAll(people_df.limit(1))
+      people_df.write.options(getQuickstartWriteConfigs)
+        .options(hudi_options)
+        .mode(SaveMode.Append)
+        .save(path_hudi_table)
+    }, number_iterations)
+
+    println("+++++++++++++++++++++++++++++++ Deleting  +++++++++++++++++++++++++++++++")
+    time({
+      people_df = people_df.filter("id != 1")
+      people_df.write.options(getQuickstartWriteConfigs).
+        option(OPERATION_OPT_KEY, "delete")
+        .options(hudi_options)
+        .mode(SaveMode.Append)
+        .save(path_hudi_table)
+    }, number_iterations)
+
+
+  }
 
   def main(args: Array[String]): Unit = {
     init_spark_session()
-    read_df()
-    write_df()
-    update_df()
-    //filter_df()
-    delete_df()
+    calculate_time()
+
   }
 }
 

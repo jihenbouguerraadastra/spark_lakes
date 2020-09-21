@@ -26,6 +26,7 @@ object Iceberg {
       .format("iceberg")
       .text(data_path)
     addressDf.show()
+
   }
 
   def write_df(): Unit = {

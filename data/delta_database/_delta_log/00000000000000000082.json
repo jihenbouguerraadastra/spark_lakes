@@ -1,4 +1,0 @@
-{"commitInfo":{"timestamp":1600424225370,"operation":"MERGE","operationParameters":{"predicate":"(people.`id` = updates.`id`)"},"readVersion":81,"isBlindAppend":false,"operationMetrics":{"numTargetRowsCopied":"0","numTargetRowsDeleted":"0","numTargetFilesAdded":"2","numTargetRowsInserted":"0","numTargetRowsUpdated":"1","numOutputRows":"1","numSourceRows":"1","numTargetFilesRemoved":"1"}}}
-{"remove":{"path":"part-00043-4e81f385-1fc5-4c96-9f63-47af40e92f80-c000.snappy.parquet","deletionTimestamp":1600424225370,"dataChange":true}}
-{"add":{"path":"part-00000-a52cbaf2-03da-41af-acf9-9a2657ab99a5-c000.snappy.parquet","partitionValues":{},"size":1327,"modificationTime":1600424224141,"dataChange":true}}
-{"add":{"path":"part-00043-84851290-c392-4496-bd1e-43f4982ef523-c000.snappy.parquet","partitionValues":{},"size":3729,"modificationTime":1600424224227,"dataChange":true}}
