@@ -22,7 +22,6 @@ def time_(function, number_iterations=number_iterations):
 
 class Delta_lake:
     def __init__(self, display):
-
         self.spark = SparkSession.builder.appName("Delta_crud") \
             .config("spark.jars.packages", "io.delta:delta-core_2.12:0.7.0") \
             .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \

@@ -1,0 +1,2 @@
+{"commitInfo":{"timestamp":1600933216416,"operation":"MERGE","operationParameters":{"predicate":"(people.`id` = updates.`id`)"},"readVersion":81,"isBlindAppend":false,"operationMetrics":{"numTargetRowsCopied":"0","numTargetRowsDeleted":"0","numTargetFilesAdded":"1","numTargetRowsInserted":"0","numTargetRowsUpdated":"0","numOutputRows":"0","numSourceRows":"1","numTargetFilesRemoved":"0"}}}
+{"add":{"path":"part-00000-ed1d6534-17a0-45e1-9623-3c80ca219c84-c000.snappy.parquet","partitionValues":{},"size":1327,"modificationTime":1600933216393,"dataChange":true}}
