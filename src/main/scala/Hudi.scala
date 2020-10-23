@@ -16,7 +16,7 @@ object Hudi {
   var spark: SparkSession = _
   var people_df: DataFrame = _
   var pwd: String = _
-  var number_iterations = 5
+  var number_iterations = 1
   var hudi_options: Map[String, String] = _
 
   def time[T](f: => T, number_iterations: Int = 1): Unit = {
@@ -54,7 +54,8 @@ object Hudi {
 
 
   def insert(): Unit = {
-    people_df = people_df.unionAll(people_df.limit(1))
+    var insert_df= people_df.limit(1)
+    people_df = people_df.union(insert_df)
     people_df.write.options(getQuickstartWriteConfigs)
       .options(hudi_options)
       .mode(SaveMode.Append)
@@ -71,7 +72,9 @@ object Hudi {
   }
 
   def update(): Unit = {
-    people_df = people_df.withColumn("id", col("id") + 1000)
+    people_df = people_df.withColumn("id", when(col("id")
+      === "1000", "id + 1"))
+
     people_df.write
       .options(getQuickstartWriteConfigs)
       .options(hudi_options)
@@ -103,11 +106,15 @@ object Hudi {
 
   }
 
+
   def calculate_time(): Unit = {
     println("+++++++++++++++++++++++++++++++ Writing +++++++++++++++++++++++++++++++")
     time(write(), number_iterations)
     println("+++++++++++++++++++++++++++++++ Updating +++++++++++++++++++++++++++++++")
     time(update(), number_iterations)
+    people_df = spark.read.parquet(path_data)
+    write()
+
     println("+++++++++++++++++++++++++++++++ Inserting +++++++++++++++++++++++++++++++")
     time(insert(), number_iterations)
     println("+++++++++++++++++++++++++++++++ Deleting  +++++++++++++++++++++++++++++++")
@@ -119,6 +126,7 @@ object Hudi {
   def main(args: Array[String]): Unit = {
     init_spark_session()
     calculate_time()
+    Thread.sleep(900000000)
 
   }
 }

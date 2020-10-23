@@ -12,7 +12,7 @@ object Delta_lake {
   var spark: SparkSession = _
   var people_df: DataFrame = _
   var pwd: String = _
-  var number_iterations = 5
+  var number_iterations = 100
   var delta_table: DeltaTable = _
 
 
@@ -31,7 +31,7 @@ object Delta_lake {
     pwd = System.getProperty("user.dir")
     path_data = pwd + "\\data\\brut_data\\data.parquet"
     path_delta_table = pwd + "\\data\\delta_database"
-    conf = new SparkConf().setMaster("local").setAppName("Delta_operation")
+    conf = new SparkConf().setMaster("local").setAppName("Delta_operation_scala")
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     sc = new SparkContext(conf)
     sc.setLogLevel("ERROR")
@@ -81,8 +81,8 @@ object Delta_lake {
 
   def update(): Unit = {
 
-    delta_table.updateExpr(
-      Map("id" -> "id + 1000 "))
+    delta_table.updateExpr(  "id = 1000",
+      Map("id" -> "id + 1 "))
   }
 
   def delete(): Unit = {
@@ -90,15 +90,22 @@ object Delta_lake {
   }
 
   def calculate_time(): Unit = {
-    read()
+
     println("+++++++++++++++++++++++++++++++ Writing +++++++++++++++++++++++++++++++")
     time(write(), number_iterations)
+    read()
     println("+++++++++++++++++++++++++++++++ Updating +++++++++++++++++++++++++++++++")
     time(update(), number_iterations)
+    write()
+    read()
     println("+++++++++++++++++++++++++++++++ Inserting +++++++++++++++++++++++++++++++")
     time(insert(), number_iterations)
+    write()
+    read()
     println("+++++++++++++++++++++++++++++++ Deleting  +++++++++++++++++++++++++++++++")
     time(delete(), number_iterations)
+    write()
+    read()
 
 
   }
@@ -106,6 +113,7 @@ object Delta_lake {
   def main(args: Array[String]): Unit = {
     init_spark_session()
     calculate_time()
+//    Thread.sleep(900000000)
 
   }
 }

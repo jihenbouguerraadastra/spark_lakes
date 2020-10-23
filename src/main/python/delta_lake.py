@@ -6,15 +6,14 @@ from pyspark.sql import SparkSession
 from pathlib import Path
 import time
 
-
-number_iterations = 5
+number_iterations = 3
 
 
 def time_(function, number_iterations=number_iterations):
     start = timeit.default_timer()
     for i in range(0, number_iterations):
         function
-    stop =timeit.default_timer()
+    stop = timeit.default_timer()
     duration = (stop - start) * (10 ** 6)
     print("Time per ", number_iterations, " iterations (s) : ", duration)
     print("Time per  single iteration (s) : ", duration / number_iterations)
@@ -22,7 +21,7 @@ def time_(function, number_iterations=number_iterations):
 
 class Delta_lake:
     def __init__(self, display):
-        self.spark = SparkSession.builder.appName("Delta_crud") \
+        self.spark = SparkSession.builder.appName("Delta_operation_py") \
             .config("spark.jars.packages", "io.delta:delta-core_2.12:0.7.0") \
             .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
             .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
@@ -71,7 +70,7 @@ class Delta_lake:
             self.display()
 
     def update(self):
-        self.delta_table.update(set={"id": "id + 1000"})
+        self.delta_table.update("id = 1000", set={"id": "id + 1"})
         if self.display_:
             print("+++++++++++++++++++++++++++++++++++++++++++ Update +++++++++++++++++++++++++++++++++++++++++++")
             self.display()
@@ -93,7 +92,7 @@ class Delta_lake:
         print("***** Size Table:", self.delta_table.toDF().count())
 
     def __await__(self):
-        time.sleep(300)
+        time.sleep(90000)
 
 
 def calculate_time():
@@ -107,6 +106,7 @@ def calculate_time():
     time_(delta_lake.insert())
     print("+++++++++++++++++++++++++++++++ Deleting  +++++++++++++++++++++++++++++++")
     time_(delta_lake.delete())
+    delta_lake.__await__()
 
 
 def test():
